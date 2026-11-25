@@ -1,3 +1,4 @@
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as conditions
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -31,5 +32,5 @@ class BaseScreen:
         try:
             self.element(locator)
             return True
-        except Exception:
+        except TimeoutException:
             return False

@@ -84,7 +84,7 @@ The sample APK path is the default. Override `APPIUM_APP` if you build or store 
 ## Use the framework with your app
 
 1. Install the Appium driver for your target platform: `uiautomator2` for Android or `xcuitest` for iOS.
-2. Copy `.env.example` and set the server URL, platform, device, and app capability. Use `APPIUM_APP` for an APK, app bundle, or provider app reference. For an already-installed app, set its package/activity (Android) or bundle ID (iOS) in `APPIUM_EXTRA_CAPS`.
+2. Copy `.env.example` and set the server URL, platform, device, and app capability. Use `APPIUM_APP` for an APK, app bundle, or provider app reference. For an already-installed Android app, set `APPIUM_APP_PACKAGE` and optionally `APPIUM_APP_ACTIVITY`. For an installed iOS app, set `APPIUM_EXTRA_CAPS='{"appium:bundleId":"com.example.app"}'`.
 3. Add page objects and tests that reflect your app's screens and expected behavior. Start from `tests/screen_objects.py` and the three sample test files.
 4. Run with `pytest -q`. For a cloud device provider, point `APPIUM_SERVER_URL` to its Appium endpoint and add provider-specific capabilities in `APPIUM_EXTRA_CAPS`.
 
@@ -111,7 +111,7 @@ The driver reads these environment variables:
 | `APPIUM_APP_ACTIVITY` | Optional Android activity for an already-installed app |
 | `APPIUM_NO_RESET` | Preserve app data between sessions (`false` by default) |
 | `APPIUM_AUTO_GRANT_PERMISSIONS` | Automatically grant Android permissions (`true` by default) |
-| `APPIUM_EXTRA_CAPS` | JSON object merged into capabilities for platform/provider options |
+| `APPIUM_EXTRA_CAPS` | JSON object merged into capabilities for iOS bundle IDs, browser sessions, or provider options |
 
 See `.env.example` for a ready-to-copy configuration.
 

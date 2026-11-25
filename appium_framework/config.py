@@ -106,10 +106,24 @@ class AppiumConfig:
             raise ValueError("APPIUM_DEVICE_NAME cannot be empty")
         if not self.automation_name:
             raise ValueError("APPIUM_AUTOMATION_NAME cannot be empty")
-        if not self.app and not self.app_package:
+
+        extra_targets = {
+            "appium:app",
+            "appium:appPackage",
+            "appium:bundleId",
+            "appium:browserName",
+            "browserName",
+        }
+        has_target = (
+            bool(self.app)
+            or bool(self.app_package)
+            or any(name in self.extra_capabilities for name in extra_targets)
+        )
+        if not has_target:
             raise ValueError(
-                "Set APPIUM_APP to an app path/reference, or set "
-                "APPIUM_APP_PACKAGE for an already-installed app."
+                "Set APPIUM_APP to an app path/reference, APPIUM_APP_PACKAGE "
+                "for an installed Android app, or a target capability such as "
+                "appium:bundleId for iOS."
             )
 
     def capabilities(self) -> dict[str, Any]:
