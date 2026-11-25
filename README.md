@@ -1,57 +1,63 @@
-# Appium Android Testing Lab
+# Appium Mobile Testing Framework
 
 [![Android E2E](https://github.com/zinaelnahel/appium-android-testing-lab/actions/workflows/android-e2e.yml/badge.svg)](https://github.com/zinaelnahel/appium-android-testing-lab/actions/workflows/android-e2e.yml)
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![Appium](https://img.shields.io/badge/Appium-Python%20Client-663399?logo=appium&logoColor=white)
+![pytest](https://img.shields.io/badge/tests-pytest-0A9EDC?logo=pytest&logoColor=white)
 
-A small native Android app built to demonstrate reliable mobile UI testing with **Appium, Python, and pytest**. The suite exercises real user flows on an Android emulator in GitHub Actions and keeps useful failure evidence.
+A reusable **Appium + Python + pytest** framework for building mobile UI automation suites. It includes a small Android sample app so the framework has a real target, example page objects, end-to-end scenarios, and a GitHub Actions run with downloadable test evidence.
 
-## What this demonstrates
+> The framework handles Appium session setup, common UI helpers, and failure evidence. You still write app-specific page objects and test cases for each app—there is no one-size-fits-all test suite.
 
-- Android end-to-end tests with Appium's **UiAutomator2** driver
-- Python test organization with pytest fixtures and screen objects
-- Stable accessibility ID selectors and explicit waits
-- Isolated test sessions with deterministic demo data
-- CI execution on an Android emulator for pushes and pull requests
-- Failure artifacts: screenshots, page source, JUnit XML, Appium logs, and Android logcat
+## What this project demonstrates
 
-## App under test
+- Creating isolated Appium sessions from environment-based capabilities
+- Running against Android or iOS by selecting the matching Appium driver
+- Organizing app-specific UI automation with page objects and pytest fixtures
+- Using accessibility IDs and explicit waits for stable interactions
+- Capturing screenshots and page source when a test fails
+- Running a real Android sample suite in GitHub Actions and retaining CI evidence
 
-**QualityLab** is an intentionally small app with three testable flows:
+## Architecture
+
+```text
+appium_framework/
+  config.py              Environment-based Appium capabilities
+  driver.py              Appium session factory
+  screen.py              Reusable explicit-wait and interaction helpers
+tests/
+  conftest.py            Driver lifecycle and failure evidence
+  screen_objects.py      QualityLab sample app page objects
+  test_login.py          Example login scenarios
+  test_search.py         Example search scenario
+  test_settings.py       Example settings scenario
+app/                     Small native Android sample app under test
+.github/workflows/       Android emulator CI workflow
+```
+
+## Included sample app: QualityLab
+
+QualityLab is intentionally small; it demonstrates how to structure tests without tying the framework to one product.
 
 | Flow | Example checks |
 | --- | --- |
-| Login | Valid credentials reach the home screen; invalid credentials show a clear error |
-| Search | A search query returns a matching result |
-| Settings | Notification preference changes from off to on |
+| Login | Valid credentials open the home screen; invalid credentials show an error |
+| Search | A query returns a matching result |
+| Settings | The notification preference can be enabled |
 
 Demo credentials: `demo@example.com` / `QualityLab123!`
 
-The app exposes stable accessibility IDs such as `login-email`, `login-submit`, and `search-query`. The tests use those IDs instead of brittle XPath or screen coordinates.
+## Run the sample locally
 
-## Test layout
+Requirements: Python 3.10+, JDK 17, Android SDK and emulator, Gradle, Node.js/npm.
 
-```text
-app/                         Native Android app under test
-tests/
-  conftest.py                Appium session and failure evidence
-  screen_objects.py          Small screen objects and explicit waits
-  test_login.py
-  test_search.py
-  test_settings.py
-.github/workflows/
-  android-e2e.yml            Build, emulator, Appium, pytest, artifacts
-```
-
-## Run locally
-
-Requirements: JDK 17, Android SDK with an API 35 emulator, Gradle 9.6, Node.js/npm, and Python 3.11+.
-
-1. Build the demo app:
+1. Build the sample APK:
 
    ```bash
-   gradle assembleDebug
+   gradle --no-daemon assembleDebug
    ```
 
-2. Install Python dependencies and Appium:
+2. Install Python and Appium dependencies:
 
    ```bash
    python -m venv .venv
@@ -61,32 +67,58 @@ Requirements: JDK 17, Android SDK with an API 35 emulator, Gradle 9.6, Node.js/n
    appium driver install uiautomator2
    ```
 
-3. Start an API 35 Android emulator, then start the Appium server in another terminal:
+3. Start an Android emulator. In a separate terminal, start the server and run the tests:
 
    ```bash
    appium
    ```
 
-4. Run the suite:
-
    ```bash
-   export APPIUM_APP="$PWD/app/build/outputs/apk/debug/app-debug.apk"
+   cp .env.example .env
+   set -a && source .env && set +a
    pytest -q
    ```
 
-The server URL defaults to `http://127.0.0.1:4723`. Set `APPIUM_SERVER_URL` to use another local endpoint.
+The sample APK path is the default. Override `APPIUM_APP` if you build or store it elsewhere.
 
-## CI and failure evidence
+## Use the framework with your app
 
-The workflow builds the app, starts an API 35 emulator, installs the UiAutomator2 driver, and runs the same pytest suite. On failure, the tests capture a screenshot and page source for the failing session. The workflow also saves the Appium server log, Android logcat, and JUnit report as a downloadable artifact.
+1. Install the Appium driver for your target platform: `uiautomator2` for Android or `xcuitest` for iOS.
+2. Copy `.env.example` and set the server URL, platform, device, and app capability. Use `APPIUM_APP` for an APK, app bundle, or provider app reference. For an already-installed app, set its package/activity (Android) or bundle ID (iOS) in `APPIUM_EXTRA_CAPS`.
+3. Add page objects and tests that reflect your app's screens and expected behavior. Start from `tests/screen_objects.py` and the three sample test files.
+4. Run with `pytest -q`. For a cloud device provider, point `APPIUM_SERVER_URL` to its Appium endpoint and add provider-specific capabilities in `APPIUM_EXTRA_CAPS`.
 
-Open **Actions → Android E2E** to see each run. No cloud device account, paid service, or private test credential is needed.
+Use accessibility IDs or other stable app identifiers wherever possible. Inspect the app with Appium Inspector and ask the app team to add accessibility identifiers when the UI does not expose reliable selectors.
 
-## Design choices
+### Platform notes
 
-- **Accessibility IDs:** selectors stay readable and less sensitive to layout changes.
-- **Explicit waits:** the suite waits for UI state instead of sleeping for fixed durations.
-- **Fresh Appium session per test:** test state does not leak between scenarios.
-- **Useful failure context:** screenshots and page source help explain what the test saw.
+- **Android:** the included GitHub Actions workflow builds QualityLab, starts an Android emulator, and runs the sample tests on every push and pull request.
+- **iOS:** the session factory selects XCUITest when `APPIUM_PLATFORM=iOS`. iOS execution requires macOS with Xcode and the XCUITest driver; this repository's CI currently demonstrates Android only.
 
-This first version targets Android. iOS can be added later with the XCUITest driver and a macOS runner.
+## Capabilities
+
+The driver reads these environment variables:
+
+| Variable | Purpose |
+| --- | --- |
+| `APPIUM_SERVER_URL` | Local or cloud Appium server URL |
+| `APPIUM_PLATFORM` | `Android` (default) or `iOS` |
+| `APPIUM_AUTOMATION_NAME` | Optional override; defaults to UiAutomator2 or XCUITest |
+| `APPIUM_DEVICE_NAME` | Target device name |
+| `APPIUM_PLATFORM_VERSION` | Optional OS version |
+| `APPIUM_APP` | APK/app path or remote provider app reference |
+| `APPIUM_APP_PACKAGE` | Optional Android package for an already-installed app |
+| `APPIUM_APP_ACTIVITY` | Optional Android activity for an already-installed app |
+| `APPIUM_NO_RESET` | Preserve app data between sessions (`false` by default) |
+| `APPIUM_AUTO_GRANT_PERMISSIONS` | Automatically grant Android permissions (`true` by default) |
+| `APPIUM_EXTRA_CAPS` | JSON object merged into capabilities for platform/provider options |
+
+See `.env.example` for a ready-to-copy configuration.
+
+## CI evidence
+
+Open **Actions → Android E2E** to see the emulator run. Each run uploads an `android-e2e-evidence` artifact containing the JUnit report, Appium logs, and Android logcat. Failed tests also save screenshots and the UI page source. The same workflow runs on pushes and pull requests.
+
+## Portfolio walkthrough
+
+When presenting the project, highlight the reusable driver configuration, the screen-object pattern, synchronization through explicit waits, and how CI preserves failure evidence. The sample app is there to make those techniques runnable and reviewable.

@@ -1,48 +1,64 @@
 from appium.webdriver.common.appiumby import AppiumBy
-from selenium.webdriver.support import expected_conditions as conditions
-from selenium.webdriver.support.ui import WebDriverWait
+
+from appium_framework.screen import BaseScreen
 
 
-class Screen:
-    def __init__(self, driver, timeout=10):
-        self.driver = driver
-        self.wait = WebDriverWait(driver, timeout)
+class LoginScreen(BaseScreen):
+    EMAIL = (AppiumBy.ACCESSIBILITY_ID, "login-email")
+    PASSWORD = (AppiumBy.ACCESSIBILITY_ID, "login-password")
+    SUBMIT = (AppiumBy.ACCESSIBILITY_ID, "login-submit")
+    ERROR = (AppiumBy.ACCESSIBILITY_ID, "login-error")
 
-    def element(self, accessibility_id):
-        return self.wait.until(
-            conditions.visibility_of_element_located(
-                (AppiumBy.ACCESSIBILITY_ID, accessibility_id)
-            )
-        )
-
-    def tap(self, accessibility_id):
-        self.element(accessibility_id).click()
-
-    def text(self, accessibility_id):
-        return self.element(accessibility_id).text
-
-
-class LoginScreen(Screen):
     def sign_in(self, email, password):
-        self.element("login-email").send_keys(email)
-        self.element("login-password").send_keys(password)
-        self.tap("login-submit")
+        self.enter_text(self.EMAIL, email)
+        self.enter_text(self.PASSWORD, password)
+        self.tap(self.SUBMIT)
+
+    @property
+    def error_message(self):
+        return self.text(self.ERROR)
 
 
-class HomeScreen(Screen):
+class HomeScreen(BaseScreen):
+    TITLE = (AppiumBy.ACCESSIBILITY_ID, "screen-title")
+    SEARCH = (AppiumBy.ACCESSIBILITY_ID, "home-search")
+    SETTINGS = (AppiumBy.ACCESSIBILITY_ID, "home-settings")
+
+    @property
+    def title(self):
+        return self.text(self.TITLE)
+
     def open_search(self):
-        self.tap("home-search")
+        self.tap(self.SEARCH)
 
     def open_settings(self):
-        self.tap("home-settings")
+        self.tap(self.SETTINGS)
 
 
-class SearchScreen(Screen):
+class SearchScreen(BaseScreen):
+    QUERY = (AppiumBy.ACCESSIBILITY_ID, "search-query")
+    SUBMIT = (AppiumBy.ACCESSIBILITY_ID, "search-submit")
+    RESULT = (AppiumBy.ACCESSIBILITY_ID, "search-result")
+
     def search_for(self, query):
-        self.element("search-query").send_keys(query)
-        self.tap("search-submit")
+        self.enter_text(self.QUERY, query)
+        self.tap(self.SUBMIT)
+
+    @property
+    def result_text(self):
+        return self.text(self.RESULT)
 
 
-class SettingsScreen(Screen):
+class SettingsScreen(BaseScreen):
+    STATUS = (AppiumBy.ACCESSIBILITY_ID, "notifications-status")
+    NOTIFICATIONS_TOGGLE = (
+        AppiumBy.ACCESSIBILITY_ID,
+        "settings-notifications-toggle",
+    )
+
+    @property
+    def notifications_status(self):
+        return self.text(self.STATUS)
+
     def toggle_notifications(self):
-        self.tap("settings-notifications-toggle")
+        self.tap(self.NOTIFICATIONS_TOGGLE)

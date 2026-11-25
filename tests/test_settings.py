@@ -6,8 +6,8 @@ def test_notification_preference_can_be_enabled(driver):
     HomeScreen(driver).open_settings()
     settings = SettingsScreen(driver)
 
-    assert settings.text("notifications-status") == "Notifications are off."
+    assert settings.notifications_status == "Notifications are off."
 
     settings.toggle_notifications()
 
-    assert settings.text("notifications-status") == "Notifications are on."
+    assert settings.notifications_status == "Notifications are on."
